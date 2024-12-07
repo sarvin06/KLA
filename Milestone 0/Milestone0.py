@@ -38,8 +38,12 @@ for i in steps:
     p1low.append(i['parameters']['P1'][1])
 
 is_avail_machines=[True]*len(machines)
-processed_steps=[[False]*len(process_time)]*count
-
+processed_steps=[]
+for i in range(count):
+    col=[]
+    for j in range(len(process_time)):
+        col.append(False)
+    processed_steps.append(col)
 setMaxTime=[0]*count
 
 for i in range(0,count):
@@ -48,15 +52,18 @@ for i in range(0,count):
 
         if is_avail_machines[j]==True and (not processed_steps[i][j]):
             is_avail_machines[j]=False
+            print(processed_steps)
+
             processed_steps[i][j]=True
             step=machines[j]['step_id']
             machine=machines[j]['machine_id']
             start_time[i]=end_time[i]
             end_time[i]+=wafers[0]['processing_times'][step]
             setMaxTime[j]=wafers[0]['processing_times'][step]
-
+   
             is_avail_machines[j]=True
             print(is_avail_machines)
+            print(processed_steps[i][j])
             print(processed_steps)
             # for k in range(count):
             #     if start_time[j]>=setMaxTime[j]:
