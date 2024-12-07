@@ -1,74 +1,47 @@
 import json
 
-with open("D:\\Milestone 0\\Milestone0.json","r") as file:
-    data=json.load(file)
+# Load the JSON file
+with open("D:\\Milestone 0\\Milestone0.json", "r") as file:
+    data = json.load(file)
 
-# print(data)
-# print(type(data))
-# for i in data['steps']:
-#     print(i,end='\n')
-# for i in data['machines']:
-#     print(i,end='\n')
-# for i in data['wafers']:
-#     print(i,end='\n')
-steps=data['steps']
-machines=data['machines']
-wafers=data['wafers']
+# Extracting relevant data
+steps = data['steps']
+machines = data['machines']
+wafers = data['wafers']
 
+# Initialize variables
+wafer_count = wafers[0]["quantity"]
+process_time = wafers[0]["processing_times"]
 
+# Availability and scheduling
+is_machine_available = [True] * len(machines)
+processed_steps = [[False] * len(process_time) for _ in range(wafer_count)]
+schedule = []
 
-Total_time=0
-#PROCESSING COUNT
-count=wafers[0]["quantity"]
-start_time=[0]*count
-end_time=[0]*count
-# print(steps,machines,wafers,sep='\n')
+# Scheduling logic
+for i in range(wafer_count):
+    wafer_id = f"W1-{i+1}"
+    start_time = 0
+    for j, step in enumerate(process_time):
+        for m_idx, machine in enumerate(machines):
+            if machine["step_id"] == step and is_machine_available[m_idx] and not processed_steps[i][j]:
+                is_machine_available[m_idx] = False
 
+                # Calculate start and end times
+                end_time = start_time + process_time[step]
+                schedule.append({
+                    "wafer_id": wafer_id,
+                    "step": step,
+                    "machine": machine["machine_id"],
+                    "start_time": start_time,
+                    "end_time": end_time,
+                })
 
-#Processing times
-process_time=wafers[0]["processing_times"]
-# print(process_time)
+                # Update tracking variables
+                start_time = end_time
+                processed_steps[i][j] = True
+                is_machine_available[m_idx] = True
+                break
 
-
-# p1up=[i for i in steps[]['parameters']]
-p1up=[]
-p1low=[]
-for i in steps:
-    p1up.append(i['parameters']['P1'][0])
-    p1low.append(i['parameters']['P1'][1])
-
-is_avail_machines=[True]*len(machines)
-processed_steps=[]
-for i in range(count):
-    col=[]
-    for j in range(len(process_time)):
-        col.append(False)
-    processed_steps.append(col)
-setMaxTime=[0]*count
-
-for i in range(0,count):
-    wafer_id="w1-"+str(i+1)
-    for j in range(len(process_time)):
-
-        if is_avail_machines[j]==True and (not processed_steps[i][j]):
-            is_avail_machines[j]=False
-            print(processed_steps)
-
-            processed_steps[i][j]=True
-            step=machines[j]['step_id']
-            machine=machines[j]['machine_id']
-            start_time[i]=end_time[i]
-            end_time[i]+=wafers[0]['processing_times'][step]
-            setMaxTime[j]=wafers[0]['processing_times'][step]
-   
-            is_avail_machines[j]=True
-            print(is_avail_machines)
-            print(processed_steps[i][j])
-            print(processed_steps)
-            # for k in range(count):
-            #     if start_time[j]>=setMaxTime[j]:
-            #         is_avail_machines[j]=True
-
-            print("wafer_id :",wafer_id,"step : ",step,"machine : ",machine,"start_time : ",start_time[i],"end_time : ",end_time[i])
-    # for key,value in process_time:
-    #     print(key,value)
+# Output the schedule
+print(json.dumps({"schedule": schedule}, indent=4))
